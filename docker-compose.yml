@@ -177,7 +177,7 @@ services:
     networks:
       - cvat
 
-cvat_worker_quality_reports:
+  cvat_worker_quality_reports:
     container_name: cvat_worker_quality_reports
     image: cvat/server:${CVAT_VERSION:-v2.4.9}
     restart: always
