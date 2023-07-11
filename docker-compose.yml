@@ -5,7 +5,7 @@
 services:
   cvat_db:
     container_name: cvat_db
-    image: postgres:15-alpine
+    image: docker.io/postgres:15-alpine
     restart: always
     environment:
       POSTGRES_USER: root
@@ -18,14 +18,14 @@ services:
 
   cvat_redis:
     container_name: cvat_redis
-    image: redis:7.0-alpine
+    image: docker.io/redis:7.0-alpine
     restart: always
     networks:
       - cvat
 
   cvat_server:
     container_name: cvat_server
-    image: cvat/server:${CVAT_VERSION:-v2.5.0}
+    image: docker.io/cvat/server:${CVAT_VERSION:-v2.5.0}
     restart: always
     depends_on:
       - cvat_redis
@@ -64,7 +64,7 @@ services:
 
   cvat_utils:
     container_name: cvat_utils
-    image: cvat/server:${CVAT_VERSION:-v2.5.0}
+    image: docker.io/cvat/server:${CVAT_VERSION:-v2.5.0}
     restart: always
     depends_on:
       - cvat_redis
@@ -89,7 +89,7 @@ services:
 
   cvat_worker_import:
     container_name: cvat_worker_import
-    image: cvat/server:${CVAT_VERSION:-v2.5.0}
+    image: docker.io/cvat/server:${CVAT_VERSION:-v2.5.0}
     restart: always
     depends_on:
       - cvat_redis
@@ -112,7 +112,7 @@ services:
 
   cvat_worker_export:
     container_name: cvat_worker_export
-    image: cvat/server:${CVAT_VERSION:-v2.5.0}
+    image: docker.io/cvat/server:${CVAT_VERSION:-v2.5.0}
     restart: always
     depends_on:
       - cvat_redis
@@ -135,7 +135,7 @@ services:
 
   cvat_worker_annotation:
     container_name: cvat_worker_annotation
-    image: cvat/server:${CVAT_VERSION:-v2.5.0}
+    image: docker.io/cvat/server:${CVAT_VERSION:-v2.5.0}
     restart: always
     depends_on:
       - cvat_redis
@@ -158,7 +158,7 @@ services:
 
   cvat_worker_webhooks:
     container_name: cvat_worker_webhooks
-    image: cvat/server:${CVAT_VERSION:-v2.5.0}
+    image: docker.io/cvat/server:${CVAT_VERSION:-v2.5.0}
     restart: always
     depends_on:
       - cvat_redis
@@ -204,7 +204,7 @@ services:
 
   cvat_ui:
     container_name: cvat_ui
-    image: cvat/ui:${CVAT_VERSION:-v2.5.0}
+    image: docker.io/cvat/ui:${CVAT_VERSION:-v2.5.0}
     restart: always
     depends_on:
       - cvat_server
@@ -217,7 +217,7 @@ services:
       - cvat
 
   traefik:
-    image: traefik:v2.9
+    image: docker.io/traefik:v2.9
     container_name: traefik
     restart: always
     command:
@@ -226,13 +226,13 @@ services:
       - '--entryPoints.web.address=:8080'
       - '--providers.file.directory=/etc/traefik/rules'
     # Uncomment to get Traefik dashboard
-    #   - "--entryPoints.dashboard.address=:8090"
-    #   - "--api.dashboard=true"
-    # labels:
-    #   - traefik.enable=true
-    #   - traefik.http.routers.dashboard.entrypoints=dashboard
-    #   - traefik.http.routers.dashboard.service=api@internal
-    #   - traefik.http.routers.dashboard.rule=Host(`${CVAT_HOST:-localhost}`)
+      - "--entryPoints.dashboard.address=:8090"
+      - "--api.dashboard=true"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dashboard.entrypoints=dashboard
+      - traefik.http.routers.dashboard.service=api@internal
+      - traefik.http.routers.dashboard.rule=Host(`${CVAT_HOST:-localhost}`)
     ports:
       - 8080:8080
       - 8090:8090
@@ -240,15 +240,17 @@ services:
       CVAT_HOST: ${CVAT_HOST:-localhost}
       DJANGO_LOG_VIEWER_HOST: grafana
       DJANGO_LOG_VIEWER_PORT: 3000
+    security_opt:
+      - 'label=disable'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - $XDG_RUNTIME_DIR/podman/podman.sock:/var/run/docker.sock:ro
       - ./components/analytics/grafana_conf.yml:/etc/traefik/rules/grafana_conf.yml:ro
     networks:
       - cvat
 
   cvat_opa:
     container_name: cvat_opa
-    image: openpolicyagent/opa:0.45.0-rootless
+    image: docker.io/openpolicyagent/opa:0.45.0-rootless
     restart: always
     networks:
       cvat:
@@ -266,7 +268,7 @@ services:
 
   cvat_clickhouse:
     container_name: cvat_clickhouse
-    image: clickhouse/clickhouse-server:22.3-alpine
+    image: docker.io/clickhouse/clickhouse-server:22.3-alpine
     restart: always
     environment:
       - CLICKHOUSE_DB=cvat
@@ -282,7 +284,7 @@ services:
 
   cvat_vector:
     container_name: cvat_vector
-    image: timberio/vector:0.26.0-alpine
+    image: docker.io/timberio/vector:0.26.0-alpine
     restart: always
     depends_on:
       - cvat_clickhouse
@@ -299,7 +301,7 @@ services:
       - ./components/analytics/vector/vector.toml:/etc/vector/vector.toml:ro
 
   cvat_grafana:
-    image: grafana/grafana-oss:9.3.6
+    image: docker.io/grafana/grafana-oss:9.3.6
     container_name: cvat_grafana
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
